@@ -3,45 +3,26 @@ import logging
 import os
 
 import aio_pika
-from aio_pika.abc import AbstractConnection
 from binance import AsyncClient
 from dotenv import load_dotenv
 
-from data_loader.handlers.binance import BinanceHandler
-from data_loader.handlers.coingecko import CoinGeckoHandler
+from handlers.binance import BinanceHandler
+from handlers.coingecko import CoinGeckoHandler
 
 load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level="INFO",
     format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-GECKO_KEY = os.environ.get("GECKO_KEY", "")
-BINANCE_CURRENCIES = ["BTCRUB", "ETHRUB", "USDTRUB"]
+
+BINANCE_CURRENCIES = ["BTCRUB", "ETHUSDT", "USDTRUB"]
 GECKO_CURRENCIES = ["bitcoin", "ethereum", "tether"]
-GECKO_VS_CURRENCIES = ["rub"]
+GECKO_VS_CURRENCIES = ["rub", "usd"]
 RABBITMQ_USER = os.environ.get("RABBITMQ_DEFAULT_USER", "quest")
 RABBITMQ_PASS = os.environ.get("RABBITMQ_DEFAULT_PASS", "quest")
-
-
-async def send_data_to_rabbitmq(
-    connection: AbstractConnection,
-    data: str,
-    topic: str,
-) -> None:
-    logging.info(f"Sending data to RabbitMQ, topic: {topic}")
-    try:
-        channel = await connection.channel()
-        await channel.declare_queue(topic)
-        await channel.default_exchange.publish(
-            aio_pika.Message(body=bytes(data, "utf-8")),
-            routing_key=topic,
-        )
-    except Exception as e:
-        logging.error(f"Error occurred while sending data to RabbitMQ: {str(e)}")
 
 
 async def main() -> None:

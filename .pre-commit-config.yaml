@@ -1,18 +1,4 @@
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.4.0
-  hooks:
-  - id: check-ast
-  - id: trailing-whitespace
-  - id: check-toml
-  - id: end-of-file-fixer
-    exclude: "migrations"
-
-- repo: https://github.com/asottile/add-trailing-comma
-  rev: v2.1.0
-  hooks:
-  - id: add-trailing-comma
-
 - repo: local
   hooks:
   - id: black
@@ -20,7 +6,8 @@ repos:
     entry: poetry run black
     language: system
     types: [python]
-    args: [--fast, "--exclude=migrations"]
+    exclude: ^.*\b(migrations)\b.*$
+    args: [--fast]
 
   - id: flake8
     name: Check with Flake8

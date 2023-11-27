@@ -25,4 +25,4 @@ def run_upgrade(connection, cfg) -> None:
 
 async def run_async_upgrade() -> None:
     async with engine.begin() as conn:
-        await conn.run_sync(run_upgrade, Config("api/alembic.ini"))
+        await conn.run_sync(run_upgrade, Config("alembic.ini"))

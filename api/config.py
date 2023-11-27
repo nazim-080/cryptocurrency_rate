@@ -10,9 +10,8 @@ class Settings(BaseSettings):
     )
 
     gecko_key: str
-    binance_currencies: list
-    gecko_currencies: list
-    gecko_vs_currencies: list
+    PGADMIN_DEFAULT_EMAIL: str
+    PGADMIN_DEFAULT_PASSWORD: str
     rabbitmq_default_user: str
     rabbitmq_default_pass: str
     postgres_user: str

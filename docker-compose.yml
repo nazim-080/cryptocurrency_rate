@@ -5,10 +5,13 @@ services:
   app:
     build: .
     container_name: app
+    working_dir: /app/api
     restart: always
+    volumes:
+      - ./api/:/app/api/
     ports:
       - "8000:8000"
-    command: bash -c "./wait-for-rabbitmq.sh rabbitmq && python api/main.py"
+    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && uvicorn main:app --host 0.0.0.0 --port=8000 --reload"
     env_file:
       - .env
     depends_on:
@@ -18,10 +21,13 @@ services:
   producer:
     build: .
     container_name: producer
+    working_dir: /app/data_loader
     restart: always
+    volumes:
+      - ./data_loader/:/app/data_loader/
     ports:
       - "8080:8080"
-    command: bash -c "./wait-for-rabbitmq.sh rabbitmq && python data_loader/data_loader.py"
+    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && python loader.py"
     env_file:
       - .env
     depends_on:
@@ -48,9 +54,21 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "5050:80"
+    env_file:
+      - .env
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
 networks:
   default:
     driver: bridge
 
 volumes:
   postgres_data:
+  pgadmin-data:
