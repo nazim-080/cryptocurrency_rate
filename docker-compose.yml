@@ -9,9 +9,9 @@ services:
     restart: always
     volumes:
       - ./api/:/app/api/
-    ports:
+    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+    expose:
       - "8000:8000"
-    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && uvicorn main:app --host 0.0.0.0 --port=8000 --reload"
     env_file:
       - .env
     depends_on:
@@ -26,13 +26,27 @@ services:
     volumes:
       - ./data_loader/:/app/data_loader/
     ports:
-      - "8080:8080"
+      - "8081:8081"
     command: bash -c "../wait-for-rabbitmq.sh rabbitmq && python loader.py"
     env_file:
       - .env
     depends_on:
       - db
       - rabbitmq
+
+  master:
+    image: locustio/locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/api/locustfile.py --master -H http://master:8089
+
+  worker:
+    image: locustio/locust
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/api/locustfile.py --worker --master-host master
 
   db:
     image: postgres:15.1-alpine
