@@ -13,8 +13,11 @@ cp .env.example .env
 Внесите при необходимости корректировки в переменные окружения.
 
 GECKO_KEY: Это API-ключ для сервиса CoinGecko.
+
 RABBITMQ_DEFAULT_USER и RABBITMQ_DEFAULT_PASS: Это имя пользователя и пароль для доступа к RabbitMQ.
+
 POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_HOST и POSTGRES_PORT: Это параметры для подключения к вашей базе данных Postgres.
+
 PGADMIN_DEFAULT_EMAIL и PGADMIN_DEFAULT_PASSWORD: Это электронная почта и пароль для доступа к интерфейсу PgAdmin. 
 
 ### Сборка образов и запуск контейнеров
