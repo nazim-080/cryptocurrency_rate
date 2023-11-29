@@ -16,7 +16,7 @@ from models import Course
 from schemas import ResponseSchema
 from service.rabbitmq import PikaClient, save_data_to_db
 
-app = FastAPI(debug=True)
+app = FastAPI()
 
 
 class Exchange(Enum):

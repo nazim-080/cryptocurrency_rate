@@ -54,6 +54,7 @@ class CoinGeckoHandler:
                             )
                             await asyncio.sleep(60)
                     else:
+                        logger.info(f"Response from Coingecko: {res}")
                         await send_data_to_rabbitmq(
                             self.rabbit_connection,
                             json.dumps(res),

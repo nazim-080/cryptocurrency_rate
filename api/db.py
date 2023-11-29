@@ -9,7 +9,7 @@ sql_url = (
     f"{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
 )
 
-engine = create_async_engine(sql_url, echo=True)
+engine = create_async_engine(sql_url)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 
