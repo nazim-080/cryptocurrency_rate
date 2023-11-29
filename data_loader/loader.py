@@ -1,21 +1,14 @@
 import asyncio
-import logging
 import os
 
 import aio_pika
 from binance import AsyncClient
 from dotenv import load_dotenv
 
-from handlers.binance import BinanceHandler
-from handlers.coingecko import CoinGeckoHandler
+
+from logger import logger
 
 load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
 
 
 BINANCE_CURRENCIES = ["BTCRUB", "ETHUSDT", "USDTRUB"]
@@ -26,7 +19,10 @@ RABBITMQ_PASS = os.environ.get("RABBITMQ_DEFAULT_PASS", "quest")
 
 
 async def main() -> None:
-    logging.info("Running main function")
+    from handlers.binance import BinanceHandler
+    from handlers.coingecko import CoinGeckoHandler
+
+    logger.info("Running main function")
     rabbit_connection = await aio_pika.connect(
         f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@rabbitmq:5672/",
     )
@@ -41,7 +37,7 @@ async def main() -> None:
         tasks.append(coin_handler.send_price(GECKO_CURRENCIES, GECKO_VS_CURRENCIES))
         await asyncio.gather(*tasks)
     except Exception as e:
-        logging.critical(f"Critical error occurred: {str(e)}")
+        logger.critical(f"Critical error occurred: {str(e)}")
     finally:
         await binance_client.close_connection()
 

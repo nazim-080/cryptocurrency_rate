@@ -11,17 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import settings
 from db import run_async_upgrade, get_session, async_session
+
+# from logger import logger
 from models import Course
 from schemas import ResponseSchema
 from service.rabbitmq import PikaClient, save_data_to_db
 
-app = FastAPI()
-
-logger = logging.getLogger(__name__)
-logging.Formatter(
-    fmt="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+app = FastAPI(debug=True)
 
 
 class Exchange(Enum):
@@ -37,13 +33,18 @@ class Currency(Enum):
 
 @app.on_event("startup")
 async def startup() -> None:
-    logger.info("Startup event")
+    logging.info("111111111111")
+    # logger.info("Running startup event.")
     try:
         await run_async_upgrade()
+        # logger.info("Database async upgrade successful.")
+        print("44444444444444")
     except Exception as e:
-        logger.critical(f"Couldn't run async upgrade: {e}")
+        # logger.critical(f"Couldn't run async upgrade: {e}")
+        print(str(e))
 
     try:
+        # logger.info("Attempting to establish connection with RabbitMQ.")
         connection: AbstractConnection = await connect(
             f"amqp://{settings.rabbitmq_default_user}:{settings.rabbitmq_default_pass}@rabbitmq:5672/",
         )
@@ -54,18 +55,21 @@ async def startup() -> None:
             save_data_to_db,
         )
         asyncio.create_task(pika_client.consume())
-
+        # logger.info("Created a connection with RabbitMQ and a consuming task.")
+        print("55555555555555555")
     except Exception as e:
-        logger.critical(f"Couldn't create connection or task: {e}")
+        # logger.critical(f"Couldn't create a connection or task: {e}")
+        print(e)
+    print("2222222222222222")
 
 
-#
 @app.get("/course")
 async def course(
     exchange: Optional[Exchange] = None,
     currency: Optional[Currency] = None,
     db: AsyncSession = Depends(get_session),
 ) -> List[ResponseSchema]:
+    # logger.info(f"Received a request to get course information with exchange={exchange} and currency={currency}")
     subquery = (
         select(
             Course.exchange,
@@ -98,7 +102,14 @@ async def course(
     if where_filter:
         query = query.where(*where_filter)
 
+    # logger.debug(f"Formed a request, query=[{query}]")
+
     result = await db.scalars(query)
+    # if result:
+    #     logger.debug(f"Received a non-empty result from the request. Processing exchange data.")
+    # else:
+    #     logger.warning(f"Received an empty result from the request.")
+
     bn = {
         "exchanger": "binance",
         "courses": [],
@@ -108,7 +119,7 @@ async def course(
         "courses": [],
     }
     for i in result.unique().all():
-        logger.debug(f"Processing exchange data: {i}")
+        # logger.debug(f"Processing exchange data: {i}")
         if i.exchange == "binance":
             bn["courses"].append(
                 {
@@ -123,6 +134,11 @@ async def course(
                     "value": i.rate,
                 },
             )
-    return [
+
+    response = [
         ResponseSchema(**exchanger) for exchanger in [bn, cg] if exchanger["courses"]
     ]
+
+    # logger.info("Formed the response and returning to caller.")
+
+    return response

@@ -1,6 +1,5 @@
 import asyncio
 import json
-import logging
 import os
 from typing import List
 
@@ -9,6 +8,7 @@ from aio_pika.abc import AbstractConnection
 from dotenv import load_dotenv
 
 from handlers.binance import send_data_to_rabbitmq
+from loader import logger
 
 load_dotenv()
 
@@ -40,16 +40,16 @@ class CoinGeckoHandler:
                         params=params,
                     )
                     res = await response.json()
-                    logging.info(f"Response from CoinGecko API: {res}")
+                    logger.info(f"Response from CoinGecko API: {res}")
                     if response.status != 200:
-                        logging.warning(
+                        logger.warning(
                             f"Response from CoinGecko API was not 200: {response.status}",
                         )
                         if (
                             response.status == 403
                             and res.get("status").get("error_code") == 429
                         ):
-                            logging.warning(
+                            logger.warning(
                                 "The number of requests per minute has been exceeded. Need to wait a minute",
                             )
                             await asyncio.sleep(60)
@@ -61,6 +61,6 @@ class CoinGeckoHandler:
                         )
                     await asyncio.sleep(5)
                 except Exception as e:
-                    logging.error(
+                    logger.error(
                         f"Error occurred while processing CoinGecko data: {str(e)}",
                     )

@@ -1,10 +1,11 @@
 import asyncio
 import json
-import logging
 
 import aio_pika
 from aio_pika.abc import AbstractConnection
 from binance import AsyncClient, BinanceSocketManager
+
+from loader import logger
 
 
 async def send_data_to_rabbitmq(
@@ -12,7 +13,7 @@ async def send_data_to_rabbitmq(
     data: str,
     topic: str,
 ) -> None:
-    logging.info(f"Sending data to RabbitMQ, topic: {topic}")
+    logger.info(f"Sending data to RabbitMQ, topic: {topic}")
     try:
         channel = await connection.channel()
         await channel.declare_queue(topic)
@@ -21,7 +22,7 @@ async def send_data_to_rabbitmq(
             routing_key=topic,
         )
     except Exception as e:
-        logging.error(f"Error occurred while sending data to RabbitMQ: {str(e)}")
+        logger.error(f"Error occurred while sending data to RabbitMQ: {str(e)}")
 
 
 class BinanceHandler:
@@ -37,11 +38,11 @@ class BinanceHandler:
                 try:
                     res = await tscm.recv()
                     if res.get("e") == "error":
-                        logging.warning(
+                        logger.warning(
                             f"Error from {currency} kline socket: {res.get('m')}"
                         )
                     else:
-                        logging.info(f"Response from {currency} kline socket: {res}")
+                        logger.info(f"Response from {currency} kline socket: {res}")
                         await send_data_to_rabbitmq(
                             self.rabbit_connection,
                             json.dumps(res),
@@ -50,6 +51,6 @@ class BinanceHandler:
 
                     await asyncio.sleep(4)
                 except Exception as e:
-                    logging.error(
+                    logger.error(
                         f"Error occurred while processing data from {currency} kline socket: {str(e)}",
                     )
