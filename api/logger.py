@@ -11,6 +11,7 @@ if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
 logger = logging.getLogger("main")
+logger.setLevel(logging.DEBUG)
 handler = TimedRotatingFileHandler(
     f"{log_dir}/{log_file}.log", when="midnight", interval=1, backupCount=5
 )

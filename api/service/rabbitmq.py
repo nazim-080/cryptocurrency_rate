@@ -7,6 +7,7 @@ from aio_pika.abc import AbstractConnection
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from logger import logger
 from models import Course
 from schemas import BinanceData, CoinGeckoData
 
@@ -33,7 +34,7 @@ class PikaClient:
                     queue = await channel.declare_queue(queue_name, auto_delete=False)
                     handler = await self.get_process_incoming_message(queue_name)
                     await queue.consume(handler)
-                    # logger.info(f"Consuming from queue: {queue_name}")
+                    logger.info(f"Consuming from queue: {queue_name}")
                     await asyncio.sleep(1)
 
     async def get_process_incoming_message(self, queue: str) -> Callable:
@@ -41,7 +42,7 @@ class PikaClient:
             async with message.process():
                 msg = message.body.decode()
                 msg = json.loads(msg)
-                # logger.info(f"Received message: {msg} in queue: {queue}")
+                logger.info(f"Received message: {msg} in queue: {queue}")
                 await self.process_callable(msg, queue, self.session)
 
         return _process_incoming_message
@@ -80,12 +81,11 @@ async def binance_data_save(message: dict, session: async_sessionmaker) -> None:
         )
         db.add(item)
         try:
-            # logger.info("Trying to commit to database.")
+            logger.info("Trying to commit to database.")
             await db.commit()
-            # logger.info("Committed successfully to database.")
+            logger.info("Committed successfully to database.")
         except IntegrityError as e:
-            # logger.error(str(e))
-            str(e)
+            logger.error(str(e))
 
 
 async def coingecko_data_save(message: dict, session: async_sessionmaker) -> None:
@@ -120,9 +120,8 @@ async def coingecko_data_save(message: dict, session: async_sessionmaker) -> Non
             ],
         )
         try:
-            # logger.info("Trying to commit to database.")
+            logger.info("Trying to commit to database.")
             await db.commit()
-            # logger.info("Committed successfully to database.")
+            logger.info("Committed successfully to database.")
         except IntegrityError as e:
-            # logger.error(str(e))
-            str(e)
+            logger.error(str(e))

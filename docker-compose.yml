@@ -9,8 +9,8 @@ services:
     restart: always
     volumes:
       - ./api/:/app/api/
-    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && uvicorn main:app --host 0.0.0.0 --port 8000"
-    expose:
+    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000"
+    ports:
       - "8000:8000"
     env_file:
       - .env
@@ -27,7 +27,7 @@ services:
       - ./data_loader/:/app/data_loader/
     ports:
       - "8081:8081"
-    command: bash -c "../wait-for-rabbitmq.sh rabbitmq &&"
+    command: bash -c "../wait-for-rabbitmq.sh rabbitmq && python loader.py"
     env_file:
       - .env
     depends_on:
